@@ -33,7 +33,7 @@ A static web page opened in the phone's browser.
 
 ### 2. Relay Server (laptop or LAN host)
 
-A small server, run on the laptop by default. It accepts local connections only (`127.0.0.1`).
+A small server, run on the laptop by default. It listens on every network interface so the phone can reach it, but refuses any client that isn't on this machine or a private network (loopback, RFC 1918, link-local). On start it prints the address to open on the phone.
 
 - **Serves** the built web app's static files over HTTP.
 - **WebSocket endpoint** at `/ws?role=<role>&session=<code>`, with two roles:

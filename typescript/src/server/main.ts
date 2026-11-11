@@ -4,12 +4,14 @@
  * - Serves the built web app from `dist/web-app/` (build it with `deno task web-app:build`).
  * - Relays input from the controller (phone) to the host (Chrome extension) at `/ws`.
  *
- * Accepts local connections only (127.0.0.1).
+ * Listens on every network interface so a phone on the same network can
+ * connect, but only answers this machine and private network addresses.
  *
  * Usage: deno task server:start [port]
  */
 
 import { DEFAULT_SERVER_PORT, RELAY_PATH } from "../shared/protocol.ts";
+import { isLocalAddress, lanAddresses } from "./network.ts";
 import { Relay } from "./relay.ts";
 import { serveStatic } from "./static.ts";
 
@@ -39,15 +41,22 @@ if (!(await exists(new URL(WEB_APP_INDEX, WEB_APP_DIR)))) {
 }
 
 Deno.serve({
-  // Local connections only.
-  hostname: "127.0.0.1",
+  // Every interface, so the phone can reach it. Requests from outside the local network are refused below.
+  hostname: "0.0.0.0",
   port,
-  onListen({ hostname, port }) {
+  onListen({ port }) {
     console.log("Relay server running.");
-    console.log(`  Web app: http://${hostname}:${port}/`);
-    console.log(`  Chrome extension server address: ${hostname}:${port}`);
+    const addresses = lanAddresses();
+    for (const address of addresses) console.log(`  Web app (phone): http://${address}:${port}/`);
+    if (addresses.length === 0) {
+      console.warn("  No local network address found. Is this machine on Wi-Fi?");
+    }
+    console.log(`  Chrome extension server address: 127.0.0.1:${port}`);
   },
-}, (request) => {
+}, (request, info) => {
+  if (!isLocalAddress(info.remoteAddr.hostname)) {
+    return new Response("Forbidden", { status: 403 });
+  }
   const { pathname } = new URL(request.url);
   return pathname === RELAY_PATH ? relay.handle(request) : webApp(request);
 });
