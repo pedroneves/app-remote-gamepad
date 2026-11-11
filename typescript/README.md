@@ -33,6 +33,9 @@ typescript/
     │   ├── app.ts         Touch input to gamepad state
     │   └── dev/           Dev server (runs on Deno, so it has its own deno.json)
     ├── server/            Relay Server (laptop / LAN)
+    │   ├── main.ts        Entry point: HTTP server and routes
+    │   ├── relay.ts       WebSocket sessions and forwarding
+    │   └── static.ts      Serves the built web app
     ├── chrome-extension/  Chrome Extension (laptop, on xbox.com/play)
     └── shared/            Code shared by all three components
 ```
@@ -53,6 +56,7 @@ Shared code goes in `src/shared/` only. Components import from `shared/` but nev
 | `deno task check` | Type checks, lints and checks formatting |
 | `deno task web-app:dev [port]` | Runs the web app dev server at `http://127.0.0.1:7000/` (or `port`). Local connections only. |
 | `deno task web-app:build` | Bundles the web app into `dist/web-app/` with `deno bundle` (built into Deno) |
+| `deno task server:start [port]` | Runs the relay server at `http://127.0.0.1:7001/` (or `port`). Local connections only. Serves `dist/web-app/` and relays input at `/ws`. |
 
 The dev server reads `app.html` from disk and builds `app.js` from `app.ts` in memory on every request, so a reload shows the latest code. No files are written. Build errors show on the page. It uses `Deno.bundle()`, which is built into Deno but unstable, so it needs `--unstable-bundle`. The build doesn't type check, so run `deno task check` for that.
 
@@ -61,5 +65,5 @@ The dev server reads `app.html` from disk and builds `app.js` from `app.ts` in m
 | Component | Status |
 |---|---|
 | Web app | Touch layout and input done. Shows the state on screen. Doesn't send it yet. |
-| Relay server | Not started |
+| Relay server | Done. Serves the web app, pairs sessions and relays input. |
 | Chrome extension | Not started |

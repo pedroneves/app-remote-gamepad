@@ -33,15 +33,16 @@ A static web page opened in the phone's browser.
 
 ### 2. Relay Server (laptop or LAN host)
 
-A small Node.js server, run on the laptop by default.
+A small server, run on the laptop by default. It accepts local connections only (`127.0.0.1`).
 
-- **Serves** the web app's static files over HTTP.
-- **WebSocket endpoint** with two roles:
+- **Serves** the built web app's static files over HTTP.
+- **WebSocket endpoint** at `/ws?role=<role>&session=<code>`, with two roles:
   - `controller`: the phone web app
   - `host`: the Chrome extension
-- **Sessions:** Pairs one controller with one host by session code. It forwards controller messages to the host unchanged.
-- **Stateless:** It doesn't interpret input and keeps no data beyond the live connections.
-- **Disconnects:** It tells the host when the controller drops.
+- **Sessions:** Pairs one controller with one host by session code, a 6-digit number. Either side can connect first. It forwards controller messages to the host unchanged. Messages from the host are ignored.
+- **Stateless:** It doesn't interpret input and keeps no data beyond the live connections. A message sent while the host isn't connected is dropped, not stored.
+- **Connects and disconnects:** It tells each side when the other one connects or drops (see `peer` below).
+- **Dead connections:** It pings each client and drops one that doesn't answer within 5 s.
 
 ### 3. Chrome Extension (laptop)
 
@@ -88,6 +89,16 @@ Standard mapping button indexes:
 | 7 | RT | 16 | Guide |
 | 8 | View | | |
 
+### Server Messages
+
+The server sends this to a client when the client joins a session, and again whenever the other side connects or disconnects:
+
+```json
+{ "t": "peer", "connected": true }
+```
+
+If the session already has a client with the same role, the server closes the new connection with code `4001`.
+
 ## Reliability
 
 - **No stuck inputs:** If the extension gets no message for 500 ms, or the controller disconnects, it resets to a neutral state with all buttons released and sticks centered.
@@ -97,7 +108,7 @@ Standard mapping button indexes:
 
 - **Latency target:** under 20 ms from touch to page on the same Wi-Fi network.
 - **Message size:** under 100 bytes. It can move to a binary format later if needed.
-- **Connection:** One long-lived WebSocket per client, with Nagle's algorithm disabled (`setNoDelay`) on the server.
+- **Connection:** One long-lived WebSocket per client, with Nagle's algorithm disabled (`TCP_NODELAY`) on the server.
 
 ## Security
 
