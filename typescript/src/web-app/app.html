@@ -211,6 +211,82 @@
       white-space: pre;
     }
 
+    .status {
+      --x: 50%;
+      --y: 12%;
+      --w: auto;
+      --h: auto;
+      padding: 0.8cqh 2.5cqh;
+      border: 0.4cqh solid var(--ctl-edge);
+      border-radius: 3cqh;
+      background: var(--ctl);
+      color: var(--muted);
+      font: 3.5cqh system-ui, sans-serif;
+      white-space: nowrap;
+    }
+    .status::before {
+      content: "";
+      display: inline-block;
+      width: 1.6cqh;
+      height: 1.6cqh;
+      margin-right: 1.2cqh;
+      border-radius: 50%;
+      vertical-align: middle;
+      background: var(--yellow);
+    }
+    .status[data-status="connected"]::before {
+      background: var(--green);
+    }
+    .status[data-status="unreachable"]::before,
+    .status[data-status="taken"]::before {
+      background: var(--red);
+    }
+
+    .join {
+      display: none;
+      gap: 1rem;
+      justify-items: center;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .join h1 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    .join p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .join input,
+    .join button {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--ctl-edge);
+      border-radius: 0.75rem;
+      background: var(--ctl);
+      color: var(--fg);
+      font: 600 1.25rem system-ui, sans-serif;
+    }
+    .join input {
+      width: 8.5em;
+      font-family: ui-monospace, monospace;
+      font-size: 2rem;
+      letter-spacing: 0.2em;
+      text-align: center;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .join .error {
+      min-height: 1.5em;
+      color: var(--red);
+    }
+    body[data-view="join"] .join {
+      display: grid;
+    }
+    body[data-view="join"] .pad,
+    body[data-view="join"] .rotate {
+      display: none;
+    }
+
     .rotate {
       display: none;
       padding: 2rem;
@@ -261,7 +337,16 @@
       <div class="at btn round small" data-button="Menu" style="--x: 60%; --y: 40%">☰</div>
 
       <div class="readout" id="readout"></div>
+      <button class="at status" id="status" type="button">Connecting…</button>
     </main>
+    <form class="join" id="join">
+      <h1>Virtual Gamepad</h1>
+      <label for="code">Enter the code shown in the Chrome extension.</label>
+      <input id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+        autocomplete="off" placeholder="000000" required>
+      <button type="submit">Join</button>
+      <p class="error" id="join-error" role="alert"></p>
+    </form>
     <div class="rotate">Turn your phone to landscape.</div>
   </body>
 </html>

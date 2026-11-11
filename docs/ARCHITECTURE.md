@@ -27,9 +27,9 @@ A static web page opened in the phone's browser.
   - **Buttons:** A finger presses whatever is under it, so it can slide from one button to another.
   - **D-pad:** One touch area split into 8 directions, so diagonals press two buttons.
   - **Triggers:** Plain buttons for now. A touch has no pressure, so they send 0 or 1.
-- **Output:** Sends the full controller state to the relay server over WebSocket. It sends whenever the state changes, plus a heartbeat about every 100 ms.
+- **Output:** Sends the full controller state to the relay server over WebSocket whenever it changes, and resends it about every 100 ms as a heartbeat, but only while the host is connected. Resending the state (rather than a bare `ping`) lets the extension recover a held input after it reset to neutral. Skips a send while earlier ones are still queued, so a slow network doesn't build up stale input.
 - **Display:** Landscape, fullscreen, no scroll or zoom. Optional haptic tap through the Vibration API.
-- **Pairing:** The user enters or scans a session code shown by the extension.
+- **Pairing:** The user enters the session code shown by the extension, or opens the page with `?session=<code>`. The phone remembers the last code and rejoins on reload. Tapping the status pill changes it.
 
 ### 2. Relay Server (laptop or LAN host)
 

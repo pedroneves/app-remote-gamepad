@@ -6,6 +6,10 @@
  * - A finger that lands on a stick drives that stick until it lifts.
  * - Any other finger presses whatever button or D-pad direction is under it,
  *   so it can slide from one button to the next.
+ *
+ * Sends the state to the relay server for the session code the user enters
+ * (or passes as `?session=`). `?server=host:port` points at a relay server
+ * other than the one that served the page, e.g. when using the dev server.
  */
 
 import {
@@ -17,6 +21,8 @@ import {
   neutralState,
   sameState,
 } from "../shared/gamepad.ts";
+import { isSessionCode } from "../shared/protocol.ts";
+import { Connection, type ConnectionStatus, relayUrl } from "./connection.ts";
 
 /** Stick tilt below this fraction of full tilt counts as centered. */
 const STICK_DEAD_ZONE = 0.12;
@@ -30,6 +36,8 @@ const TAP_MS = 250;
 const DOUBLE_TAP_MS = 300;
 /** Length of the haptic tap on button press. */
 const HAPTIC_MS = 12;
+/** `localStorage` key of the last session code, to rejoin on reload. */
+const SESSION_KEY = "session";
 
 const bit = (button: number) => 1 << button;
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -215,6 +223,7 @@ function update(): void {
   }
   readout.textContent = describe(next);
   state = next;
+  connection?.send();
 }
 
 /** Lifts every finger. Used when the page loses focus so nothing stays pressed. */
@@ -268,10 +277,82 @@ function lift(e: PointerEvent): void {
 addEventListener("pointerup", lift);
 addEventListener("pointercancel", lift);
 
+// Joining a session
+
+const joinForm = required<HTMLFormElement>("#join");
+const codeInput = required<HTMLInputElement>("#code");
+const joinError = required<HTMLElement>("#join-error");
+const statusButton = required<HTMLButtonElement>("#status");
+const params = new URLSearchParams(location.search);
+
+let connection: Connection | null = null;
+let session = "";
+
+const STATUS_TEXT: Record<ConnectionStatus, (code: string) => string> = {
+  connecting: () => "Connecting…",
+  waiting: (code) => `Waiting for Chrome · ${code}`,
+  connected: (code) => `Connected · ${code}`,
+  unreachable: () => "Can't reach the server. Retrying…",
+  taken: (code) => `Another phone is using ${code}`,
+};
+
+function showStatus(status: ConnectionStatus): void {
+  statusButton.dataset.status = status;
+  statusButton.textContent = STATUS_TEXT[status](session);
+}
+
+function storedSession(): string | null {
+  try {
+    return localStorage.getItem(SESSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function storeSession(code: string): void {
+  try {
+    localStorage.setItem(SESSION_KEY, code);
+  } catch {
+    // Private browsing can refuse storage. The code then lasts until reload.
+  }
+}
+
+function showJoin(): void {
+  codeInput.value = session;
+  joinError.textContent = "";
+  document.body.dataset.view = "join";
+}
+
+function join(code: string): void {
+  session = code;
+  storeSession(code);
+  connection?.close();
+  connection = new Connection(relayUrl(code, params.get("server")), () => state, showStatus);
+  document.body.dataset.view = "pad";
+}
+
+joinForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const code = codeInput.value.replace(/\D/g, "");
+  if (!isSessionCode(code)) {
+    joinError.textContent = "The code has 6 digits.";
+    return;
+  }
+  codeInput.blur();
+  enterFullscreen();
+  join(code);
+});
+statusButton.addEventListener("click", showJoin);
+
 addEventListener("blur", releaseAll);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) releaseAll();
+  else connection?.wake();
 });
 addEventListener("contextmenu", (e) => e.preventDefault());
 
 readout.textContent = describe(state);
+
+const initialSession = params.get("session") ?? storedSession();
+if (isSessionCode(initialSession)) join(initialSession);
+else showJoin();

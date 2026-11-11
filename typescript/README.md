@@ -30,7 +30,8 @@ typescript/
     ├── web-app/           Virtual Gamepad Web App (phone)
     │   ├── deno.json      Type checks against browser DOM libraries
     │   ├── app.html       Page, layout and styles
-    │   ├── app.ts         Touch input to gamepad state
+    │   ├── app.ts         Touch input to gamepad state, joining a session
+    │   ├── connection.ts  WebSocket to the relay server
     │   └── dev/           Dev server (runs on Deno, so it has its own deno.json)
     ├── server/            Relay Server (laptop / LAN)
     │   ├── main.ts        Entry point: HTTP server and routes
@@ -69,6 +70,15 @@ Shared code goes in `src/shared/` only. Components import from `shared/` but nev
 
 The dev server reads `app.html` from disk and builds `app.js` from `app.ts` in memory on every request, so a reload shows the latest code. No files are written. Build errors show on the page. It uses `Deno.bundle()`, which is built into Deno but unstable, so it needs `--unstable-bundle`. The build doesn't type check, so run `deno task check` for that.
 
+## Playing
+
+1. Run `deno task web-app:build` and `deno task chrome-extension:build`.
+2. Run `deno task server:start`. It prints the web app's address on your network.
+3. Load the extension (see below) and open Xbox Cloud Gaming in Chrome. The extension's popup shows the session code.
+4. On the phone, on the same Wi-Fi, open the printed address and enter the code.
+
+To use the dev server with a running relay server, open `http://127.0.0.1:7000/?server=127.0.0.1:7001`.
+
 ## Loading the Chrome Extension
 
 1. Run `deno task chrome-extension:build`.
@@ -81,6 +91,6 @@ After a rebuild, click the extension's reload button and reload the Xbox tab.
 
 | Component | Status |
 |---|---|
-| Web app | Touch layout and input done. Shows the state on screen. Doesn't send it yet. |
+| Web app | Done. Touch layout, input, pairing by session code, sends to the relay server. |
 | Relay server | Done. Serves the web app, pairs sessions and relays input. |
 | Chrome extension | Written and smoke-tested outside Chrome. Not yet tried on xbox.com. |
