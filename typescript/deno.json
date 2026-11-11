@@ -1,0 +1,13 @@
+{
+  "workspace": ["./src/web-app"],
+  "compilerOptions": {
+    "strict": true
+  },
+  "imports": {},
+  "fmt": {
+    "include": ["src/"]
+  },
+  "lint": {
+    "include": ["src/"]
+  }
+}
