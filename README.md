@@ -33,8 +33,16 @@ flowchart LR
 
 The project is in the design phase.
 
+## Implementations
+
+The project may be built in more than one language. Each one has its own folder.
+
+| Folder | Language | Notes |
+|---|---|---|
+| [typescript/](typescript/README.md) | TypeScript (Deno) | No third-party dependencies |
+
 ## Documentation
 
 | Document | What it covers |
 |---|---|
-| [architecture.md](architecture.md) | Components, data flow, input protocol, reliability, performance and security |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data flow, input protocol, reliability, performance and security |

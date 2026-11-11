@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#121214">
+    <title>Virtual Gamepad</title>
+    <style>
+    :root {
+      color-scheme: dark;
+      --bg: #121214;
+      --fg: #e8e8ea;
+      --muted: #8a8a94;
+      --ctl: #26262c;
+      --ctl-edge: #3a3a43;
+      --ctl-pressed: #55555f;
+      --green: #5fbf5f;
+      --red: #e5534b;
+      --blue: #4a9eff;
+      --yellow: #f2c744;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+      display: grid;
+      place-items: center;
+      container-type: size;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, sans-serif;
+      /* No scrolling, zooming, text selection or long-press menus. */
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* The gamepad keeps a 2:1 ratio and fits inside the screen.
+       Positions are percentages of it, sizes are cqh (1% of its height). */
+    .pad {
+      position: relative;
+      width: min(100cqw, 200cqh);
+      height: min(100cqh, 50cqw);
+      container-type: size;
+      font-size: 5cqh;
+    }
+
+    /* Placed by its center at (--x, --y). */
+    .at {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--w, var(--size));
+      height: var(--h, var(--size));
+      translate: -50% -50%;
+    }
+
+    /* Pressed states only change color, never size:
+       a shrinking button would slip out from under the finger at its edge. */
+    .btn {
+      display: grid;
+      place-items: center;
+      border: 0.5cqh solid var(--ctl-edge);
+      background: var(--ctl);
+      color: var(--accent, var(--fg));
+      font-weight: 600;
+    }
+    .btn.pressed {
+      background: var(--accent, var(--ctl-pressed));
+      color: var(--accent-fg, var(--fg));
+    }
+
+    .round {
+      --size: 15cqh;
+      border-radius: 50%;
+      font-size: 7cqh;
+    }
+    .small {
+      --size: 11cqh;
+      font-size: 5cqh;
+      color: var(--muted);
+    }
+
+    .shoulder {
+      --w: 30cqh;
+      --h: 12cqh;
+      border-radius: 3cqh;
+    }
+    .trigger {
+      border-radius: 5cqh 5cqh 2cqh 2cqh;
+    }
+
+    .a {
+      --accent: var(--green);
+      --accent-fg: var(--bg);
+    }
+    .b {
+      --accent: var(--red);
+      --accent-fg: var(--bg);
+    }
+    .x {
+      --accent: var(--blue);
+      --accent-fg: var(--bg);
+    }
+    .y {
+      --accent: var(--yellow);
+      --accent-fg: var(--bg);
+    }
+
+    .stick {
+      border-radius: 50%;
+      border: 0.5cqh solid var(--ctl-edge);
+      background: radial-gradient(circle, #1a1a1e 0 50%, var(--ctl) 100%);
+    }
+    .knob {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 46%;
+      height: 46%;
+      translate: -50% -50%;
+      border-radius: 50%;
+      border: 0.6cqh solid #55555f;
+      background: #3b3b44;
+      box-shadow: 0 1cqh 2cqh #0009;
+    }
+    .stick.active .knob {
+      background: #4a4a55;
+    }
+    .stick.pressed .knob {
+      border-color: var(--fg);
+      background: #6a6a76;
+    }
+
+    .arm {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      background: var(--ctl);
+      color: var(--muted);
+      font-size: 4cqh;
+    }
+    .arm.pressed {
+      background: var(--ctl-pressed);
+      color: var(--fg);
+    }
+    .arm.up {
+      left: 33%;
+      top: 0;
+      width: 34%;
+      height: 36%;
+      border-radius: 2cqh 2cqh 0 0;
+    }
+    .arm.down {
+      left: 33%;
+      bottom: 0;
+      width: 34%;
+      height: 36%;
+      border-radius: 0 0 2cqh 2cqh;
+    }
+    .arm.left {
+      top: 33%;
+      left: 0;
+      height: 34%;
+      width: 36%;
+      border-radius: 2cqh 0 0 2cqh;
+    }
+    .arm.right {
+      top: 33%;
+      right: 0;
+      height: 34%;
+      width: 36%;
+      border-radius: 0 2cqh 2cqh 0;
+    }
+    .dpad::after {
+      content: "";
+      position: absolute;
+      left: 33%;
+      top: 33%;
+      width: 34%;
+      height: 34%;
+      background: var(--ctl);
+    }
+
+    .readout {
+      position: absolute;
+      left: 50%;
+      top: 5%;
+      translate: -50% -50%;
+      color: var(--muted);
+      font: 3.5cqh ui-monospace, monospace;
+      white-space: pre;
+    }
+
+    .rotate {
+      display: none;
+      padding: 2rem;
+      text-align: center;
+      font-size: 1.25rem;
+    }
+    @media (orientation: portrait) {
+      .pad {
+        display: none;
+      }
+      .rotate {
+        display: block;
+      }
+    }
+    </style>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <main class="pad" id="pad">
+      <div class="at btn shoulder trigger" data-button="LT" style="--x: 11%; --y: 10%">LT</div>
+      <div class="at btn shoulder" data-button="LB" style="--x: 11%; --y: 25%">LB</div>
+      <div class="at btn shoulder trigger" data-button="RT" style="--x: 89%; --y: 10%">RT</div>
+      <div class="at btn shoulder" data-button="RB" style="--x: 89%; --y: 25%">RB</div>
+
+      <div class="at stick" data-stick="left" style="--x: 17%; --y: 56%; --size: 42cqh">
+        <div class="knob"></div>
+      </div>
+      <div class="at stick" data-stick="right" style="--x: 65%; --y: 78%; --size: 38cqh">
+        <div class="knob"></div>
+      </div>
+
+      <div class="at dpad" data-dpad style="--x: 35%; --y: 78%; --size: 38cqh">
+        <div class="arm up" data-dpad-dir="DpadUp">▲</div>
+        <div class="arm down" data-dpad-dir="DpadDown">▼</div>
+        <div class="arm left" data-dpad-dir="DpadLeft">◀</div>
+        <div class="arm right" data-dpad-dir="DpadRight">▶</div>
+      </div>
+
+      <div class="at" style="--x: 83%; --y: 56%; --size: 42cqh">
+        <div class="at btn round y" data-button="Y" style="--x: 50%; --y: 18%">Y</div>
+        <div class="at btn round x" data-button="X" style="--x: 18%; --y: 50%">X</div>
+        <div class="at btn round b" data-button="B" style="--x: 82%; --y: 50%">B</div>
+        <div class="at btn round a" data-button="A" style="--x: 50%; --y: 82%">A</div>
+      </div>
+
+      <div class="at btn round small" data-button="View" style="--x: 40%; --y: 40%">⧉</div>
+      <div class="at btn round small" data-button="Guide" style="--x: 50%; --y: 22%">⌂</div>
+      <div class="at btn round small" data-button="Menu" style="--x: 60%; --y: 40%">☰</div>
+
+      <div class="readout" id="readout"></div>
+    </main>
+    <div class="rotate">Turn your phone to landscape.</div>
+  </body>
+</html>
