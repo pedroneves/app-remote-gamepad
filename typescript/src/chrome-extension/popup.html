@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Virtual Gamepad</title>
+    <style>
+    :root {
+      color-scheme: dark;
+      --bg: #121214;
+      --fg: #e8e8ea;
+      --muted: #8a8a94;
+      --ctl: #26262c;
+      --ctl-edge: #3a3a43;
+      --green: #5fbf5f;
+      --red: #e5534b;
+      --yellow: #f2c744;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 300px;
+      margin: 0;
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14px/1.4 system-ui, sans-serif;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .status::before {
+      content: "";
+      flex: none;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .status[data-tone="ok"]::before {
+      background: var(--green);
+    }
+
+    .status[data-tone="wait"]::before {
+      background: var(--yellow);
+    }
+
+    .status[data-tone="error"]::before {
+      background: var(--red);
+    }
+
+    .label {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .code {
+      margin: 0;
+      font: 600 32px/1 ui-monospace, monospace;
+      letter-spacing: 0.15em;
+      user-select: all;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 8px;
+    }
+
+    form .label {
+      grid-column: 1 / -1;
+    }
+
+    input,
+    button {
+      min-width: 0;
+      padding: 6px 8px;
+      border: 1px solid var(--ctl-edge);
+      border-radius: 6px;
+      background: var(--ctl);
+      color: var(--fg);
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .error {
+      grid-column: 1 / -1;
+      margin: 0;
+      color: var(--red);
+      font-size: 12px;
+    }
+
+    .error:empty {
+      display: none;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Virtual Gamepad</h1>
+    <p class="status" id="status" data-tone="idle">Loading…</p>
+    <div>
+      <p class="label">Session code. Enter it on your phone.</p>
+      <p class="code" id="session">------</p>
+    </div>
+    <form id="address-form">
+      <label class="label" for="address">Relay server address</label>
+      <input id="address" name="address" spellcheck="false" autocomplete="off">
+      <button type="submit">Save</button>
+      <p class="error" id="address-error" role="alert"></p>
+    </form>
+    <script src="popup.js"></script>
+  </body>
+</html>
