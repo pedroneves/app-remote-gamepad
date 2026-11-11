@@ -21,8 +21,12 @@ All three parts talk over the local network. No Bluetooth: a web page cannot act
 
 A static web page opened in the phone's browser.
 
-- **UI:** Xbox layout: two analog sticks (with click), D-pad, A/B/X/Y, LB/RB, LT/RT (analog), View, Menu, Guide.
-- **Input:** Touch events with multi-touch support. Sticks give values from -1 to 1 on each axis, with a dead zone. Triggers give 0 to 1.
+- **UI:** Xbox layout: two analog sticks (with click), D-pad, A/B/X/Y, LB/RB, LT/RT, View, Menu, Guide.
+- **Input:** Pointer Events, one per finger, so multi-touch works.
+  - **Sticks:** Tilt is the finger's distance from the stick center as a fraction of its radius, from -1 to 1 on each axis, with a radial dead zone. A finger that lands on a stick keeps driving it until it lifts. Double-tap and hold clicks the stick.
+  - **Buttons:** A finger presses whatever is under it, so it can slide from one button to another.
+  - **D-pad:** One touch area split into 8 directions, so diagonals press two buttons.
+  - **Triggers:** Plain buttons for now. A touch has no pressure, so they send 0 or 1.
 - **Output:** Sends the full controller state to the relay server over WebSocket. It sends whenever the state changes, plus a heartbeat about every 100 ms.
 - **Display:** Landscape, fullscreen, no scroll or zoom. Optional haptic tap through the Vibration API.
 - **Pairing:** The user enters or scans a session code shown by the extension.
