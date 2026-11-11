@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["./chrome.d.ts"]
+  }
+}

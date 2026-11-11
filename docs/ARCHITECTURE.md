@@ -27,13 +27,13 @@ A static web page opened in the phone's browser.
   - **Buttons:** A finger presses whatever is under it, so it can slide from one button to another.
   - **D-pad:** One touch area split into 8 directions, so diagonals press two buttons.
   - **Triggers:** Plain buttons for now. A touch has no pressure, so they send 0 or 1.
-- **Output:** Sends the full controller state to the relay server over WebSocket. It sends whenever the state changes, plus a heartbeat about every 100 ms.
+- **Output:** Sends the full controller state to the relay server over WebSocket whenever it changes, and resends it about every 100 ms as a heartbeat, but only while the host is connected. Resending the state (rather than a bare `ping`) lets the extension recover a held input after it reset to neutral. Skips a send while earlier ones are still queued, so a slow network doesn't build up stale input.
 - **Display:** Landscape, fullscreen, no scroll or zoom. Optional haptic tap through the Vibration API.
-- **Pairing:** The user enters or scans a session code shown by the extension.
+- **Pairing:** The user enters the session code shown by the extension, or opens the page with `?session=<code>`. The phone remembers the last code and rejoins on reload. Tapping the status pill changes it.
 
 ### 2. Relay Server (laptop or LAN host)
 
-A small server, run on the laptop by default. It accepts local connections only (`127.0.0.1`).
+A small server, run on the laptop by default. It listens on every network interface so the phone can reach it, but refuses any client that isn't on this machine or a private network (loopback, RFC 1918, link-local). On start it prints the address to open on the phone.
 
 - **Serves** the built web app's static files over HTTP.
 - **WebSocket endpoint** at `/ws?role=<role>&session=<code>`, with two roles:
@@ -46,18 +46,34 @@ A small server, run on the laptop by default. It accepts local connections only 
 
 ### 3. Chrome Extension (laptop)
 
-A Manifest V3 extension active only on `https://www.xbox.com/*/play*`.
+A Manifest V3 extension (Chrome 116 or later). Its content scripts run only on Xbox Cloud Gaming pages: `https://www.xbox.com/*/play*` and `https://play.xbox.com/*` (xbox.com/play can redirect there).
 
-It has two scripts:
+```mermaid
+flowchart LR
+    A["Relay Server"] -- WebSocket --> B["Service worker"]
+    B -- "runtime port" --> C["Bridge script<br/>(isolated world)"]
+    C -- "window.postMessage" --> D["Page script<br/>(main world)"]
+    D -- "navigator.getGamepads()" --> E["xbox.com"]
+    B -- "runtime port" --> F["Popup"]
+```
 
+It has four parts:
+
+- **Service worker**
+  - Opens the WebSocket to the relay server as `host` while at least one Xbox tab is open, and closes it when the last one closes. `ws://localhost` works for a server on the laptop. A server on another machine would need `wss://`.
+  - Reconnects with backoff (250 ms, doubling, up to 5 s).
+  - Drops stale and malformed messages, and passes input to the bridge script of every Xbox tab.
+  - Sends a keepalive every 20 s, since Chrome stops an idle extension service worker after 30 s.
+  - The socket lives here, not in a content script: Chrome makes content script requests on behalf of the page, and xbox.com's Content-Security-Policy (`connect-src`) doesn't allow the relay server.
 - **Bridge script** (content script, isolated world)
-  - Opens the WebSocket to the relay server. `ws://localhost` is allowed from an HTTPS page. A server on another machine would need `wss://`.
-  - Passes each state update to the page script through `window.postMessage`.
+  - Connects to the service worker over a runtime port, and reconnects if Chrome restarts the service worker.
+  - Passes each update to the page script through `window.postMessage`.
 - **Page script** (content script, `"world": "MAIN"`, runs at `document_start`)
-  - Replaces `navigator.getGamepads()` so the result includes a virtual `Gamepad` with `mapping: "standard"`, 17 buttons and 4 axes.
+  - Replaces `navigator.getGamepads()` so the result includes a virtual `Gamepad` with `mapping: "standard"`, 17 buttons and 4 axes, in the first slot no real gamepad uses.
   - Fires `gamepadconnected` and `gamepaddisconnected` events.
   - Updates `timestamp` on every state change so the page sees new input.
-- **Popup:** Shows connection status and the session code, and lets the user set the server address.
+  - Resets to neutral after 500 ms without input (see Reliability).
+- **Popup:** Shows connection status and the session code, and lets the user set the server address. The extension makes the session code once and keeps it.
 
 ## Input Protocol
 
@@ -114,7 +130,7 @@ If the session already has a client with the same role, the server closes the ne
 
 - **Network:** Runs on the local network only.
 - **Sessions:** A random session code is required to pair. The server rejects a second controller or host on the same session.
-- **Permissions:** The extension requests access only to xbox.com.
+- **Permissions:** The extension runs only on Xbox Cloud Gaming pages and asks only for `storage`.
 
 ## Open Questions
 
