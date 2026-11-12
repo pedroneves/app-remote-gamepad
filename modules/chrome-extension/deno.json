@@ -1,0 +1,9 @@
+{
+  "name": "@remote-gamepad/chrome-extension",
+  "version": "0.1.0",
+  "exports": "./src/background.ts",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["./src/chrome.d.ts"]
+  }
+}

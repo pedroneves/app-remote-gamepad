@@ -1,6 +1,6 @@
 /** Extension settings, kept in `chrome.storage.local`. */
 
-import { DEFAULT_SERVER_PORT, RELAY_PATH } from "../shared/protocol.ts";
+import { DEFAULT_SERVER_PORT, RELAY_PATH } from "@remote-gamepad/shared/protocol";
 
 /** Matches the address the relay server prints when it starts. */
 export const DEFAULT_ADDRESS = `127.0.0.1:${DEFAULT_SERVER_PORT}`;

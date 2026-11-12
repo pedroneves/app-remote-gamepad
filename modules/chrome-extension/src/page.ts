@@ -19,7 +19,7 @@ import {
   isPressed,
   neutralState,
   sameState,
-} from "../shared/gamepad.ts";
+} from "@remote-gamepad/shared/gamepad";
 import { type InputEvent, isPageMessage } from "./messages.ts";
 
 /** With no message from the controller for this long, the gamepad goes back to neutral. */

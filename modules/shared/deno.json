@@ -1,0 +1,8 @@
+{
+  "name": "@remote-gamepad/shared",
+  "version": "0.1.0",
+  "exports": {
+    "./gamepad": "./src/gamepad.ts",
+    "./protocol": "./src/protocol.ts"
+  }
+}

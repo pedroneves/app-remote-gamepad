@@ -7,8 +7,13 @@
  * Reconnects with backoff.
  */
 
-import type { GamepadState } from "../shared/gamepad.ts";
-import { CloseCode, isPeerMessage, RELAY_PATH, stateMessage } from "../shared/protocol.ts";
+import type { GamepadState } from "@remote-gamepad/shared/gamepad";
+import {
+  CloseCode,
+  isPeerMessage,
+  RELAY_PATH,
+  stateMessage,
+} from "@remote-gamepad/shared/protocol";
 
 const HEARTBEAT_MS = 100;
 /** First reconnect delay. It doubles on each failure, up to `RETRY_MAX_MS`. */

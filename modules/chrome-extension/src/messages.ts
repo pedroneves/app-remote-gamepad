@@ -7,7 +7,7 @@
  * ```
  */
 
-import type { GamepadState } from "../shared/gamepad.ts";
+import type { GamepadState } from "@remote-gamepad/shared/gamepad";
 
 /** Names of the runtime ports that connect to the service worker. */
 export const PortName = {
