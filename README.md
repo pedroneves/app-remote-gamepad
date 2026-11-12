@@ -33,16 +33,20 @@ flowchart LR
 
 The project is in the design phase.
 
-## Implementations
+## Modules
 
-The project may be built in more than one language. Each one has its own folder.
+The project is a [Deno](https://deno.com) workspace. Each component is a module under `modules/`. Only the server may get implementations in other languages, each in its own folder.
 
-| Folder | Language | Notes |
+| Folder | Component | Language |
 |---|---|---|
-| [typescript/](typescript/README.md) | TypeScript (Deno) | No third-party dependencies |
+| [modules/web-app/](modules/web-app/) | Virtual Gamepad Web App | TypeScript (Deno) |
+| [modules/server/typescript/](modules/server/typescript/) | Relay Server | TypeScript (Deno) |
+| [modules/chrome-extension/](modules/chrome-extension/) | Chrome Extension | TypeScript (Deno) |
+| [modules/shared/](modules/shared/) | Shared code | TypeScript (Deno) |
 
 ## Documentation
 
 | Document | What it covers |
 |---|---|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data flow, input protocol, reliability, performance and security |
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Project layout, the no-dependency rule, tasks, playing and loading the extension |

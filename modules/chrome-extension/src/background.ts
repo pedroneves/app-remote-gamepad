@@ -16,7 +16,7 @@ import {
   isPeerMessage,
   parseControllerMessage,
   stateFromMessage,
-} from "../shared/protocol.ts";
+} from "@remote-gamepad/shared/protocol";
 import { type InputEvent, PortName, type ServerStatus, type Status } from "./messages.ts";
 import { loadSettings, relayUrl, type Settings, StorageKey } from "./settings.ts";
 

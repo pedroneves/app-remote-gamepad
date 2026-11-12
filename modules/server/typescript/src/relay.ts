@@ -13,7 +13,7 @@ import {
   otherRole,
   type PeerMessage,
   type Role,
-} from "../shared/protocol.ts";
+} from "@remote-gamepad/shared/protocol";
 
 /** Seconds a client may go without answering a ping before the server drops it. */
 const IDLE_TIMEOUT_S = 5;

@@ -1,7 +1,7 @@
 /**
  * Relay Server.
  *
- * - Serves the built web app from `dist/web-app/` (build it with `deno task web-app:build`).
+ * - Serves the built web app from `modules/web-app/dist/` (build it with `deno task web-app:build`).
  * - Relays input from the controller (phone) to the host (Chrome extension) at `/ws`.
  *
  * Listens on every network interface so a phone on the same network can
@@ -10,12 +10,12 @@
  * Usage: deno task server:start [port]
  */
 
-import { DEFAULT_SERVER_PORT, RELAY_PATH } from "../shared/protocol.ts";
+import { DEFAULT_SERVER_PORT, RELAY_PATH } from "@remote-gamepad/shared/protocol";
 import { isLocalAddress, lanAddresses } from "./network.ts";
 import { Relay } from "./relay.ts";
 import { serveStatic } from "./static.ts";
 
-const WEB_APP_DIR = new URL("../../dist/web-app/", import.meta.url);
+const WEB_APP_DIR = new URL("../../../web-app/dist/", import.meta.url);
 const WEB_APP_INDEX = "app.html";
 
 const port = Number(Deno.args[0] ?? DEFAULT_SERVER_PORT);

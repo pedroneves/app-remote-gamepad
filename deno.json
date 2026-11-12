@@ -1,0 +1,31 @@
+{
+  "workspace": [
+    "./modules/shared",
+    "./modules/web-app",
+    "./modules/web-app/src/dev",
+    "./modules/chrome-extension",
+    "./modules/server/typescript"
+  ],
+  "compilerOptions": {
+    "strict": true
+  },
+  "imports": {},
+  "tasks": {
+    "check": "deno check modules/ && deno lint && deno fmt --check",
+    "web-app:build": "deno bundle --platform=browser --format=iife --output=modules/web-app/dist/app.js modules/web-app/src/app.ts && cp modules/web-app/src/app.html modules/web-app/dist/app.html",
+    "web-app:dev": "deno run --unstable-bundle --allow-net=127.0.0.1 --allow-read=modules/web-app/src,modules/shared/src modules/web-app/src/dev/server.ts",
+    "chrome-extension:build": "deno bundle --platform=browser --format=iife --outdir=modules/chrome-extension/dist modules/chrome-extension/src/background.ts modules/chrome-extension/src/bridge.ts modules/chrome-extension/src/page.ts modules/chrome-extension/src/popup.ts && cp modules/chrome-extension/src/manifest.json modules/chrome-extension/src/popup.html modules/chrome-extension/dist/",
+    "server:start": "deno run --allow-net=0.0.0.0 --allow-sys=networkInterfaces --allow-read=modules/web-app/dist modules/server/typescript/src/main.ts"
+  },
+  "fmt": {
+    "include": [
+      "modules/"
+    ],
+    "lineWidth": 100
+  },
+  "lint": {
+    "include": [
+      "modules/"
+    ]
+  }
+}

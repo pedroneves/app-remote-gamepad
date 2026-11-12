@@ -20,8 +20,8 @@ import {
   isPressed,
   neutralState,
   sameState,
-} from "../shared/gamepad.ts";
-import { isSessionCode } from "../shared/protocol.ts";
+} from "@remote-gamepad/shared/gamepad";
+import { isSessionCode } from "@remote-gamepad/shared/protocol";
 import { Connection, type ConnectionStatus, relayUrl } from "./connection.ts";
 
 /** Stick tilt below this fraction of full tilt counts as centered. */
